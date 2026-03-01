@@ -1,47 +1,27 @@
-FRED Dashboard V2 — Backend API Contract (FastAPI)
+FRED Dashboard V2 — UI Wireframe (Dark, Minimal)
 
-Base URL
-- /api
+Global
+- Left: Domain tabs (Liquidity, Stress, Rates, Curve, Credit, USD, Flows, Labor, Inflation, Consumption, Business, Housing, Fiscal, Markets)
+- Top bar: Search (series), Date range, Transform selector (auto per series), Refresh status, Last sync time
 
-Endpoints
-1) GET /api/domains
-Response: [{ "domain": "Liquidity", "count": 4 }, ...]
+Domain Page Layout (default)
+- Row 1: 3–4 primary charts (tier S) with short captions
+- Row 2: secondary charts (tier A) + small sparklines
+- Right drawer: “Series Inspector” (metadata, units, last update, notes, download CSV)
 
-2) GET /api/series
-Query params:
-- domain (optional)
-- tier (optional)
-Response: [{ id, name, domain, tier, intent, chart, transforms, notes }, ...]
+Composite Page Layout
+1) Risk Regime
+- Composite line (zero-centered) + components small multiples
+- Regime label (Risk-On / Neutral / Risk-Off) based on thresholds
 
-3) GET /api/series/{id}
-Returns catalog entry + latest metadata snapshot
+2) Recession Risk
+- Heatmap band + components (curve, SLOOS, claims, unemployment change)
+- “Signals” panel listing triggered conditions
 
-4) GET /api/series/{id}/data
-Query params:
-- start=YYYY-MM-DD (optional)
-- end=YYYY-MM-DD (optional)
-- transform=lin|yoy|mom|diff|zscore|...
-- vintage=latest|all (default latest)
-Response:
-{
-  "id": "PAYEMS",
-  "transform": "yoy",
-  "observations": [{ "date": "2024-01-01", "value": 1.23 }, ...]
-}
+3) Inflation Drivers
+- Multi-panel: Core PCE YoY, 3m annualized, wages YoY, sticky CPI YoY, 5y5y expectations
+- Optional: rolling correlation table
 
-5) GET /api/composites
-Response: [{ id, name, intent, chart }, ...]
-
-6) GET /api/composites/{id}/data
-Response depends on chart:
-- line_zero: { date,value } series
-- multi_panel: { panels: { key: [{date,value}...] } }
-- heatmap_band: { score: [{date,value}], bands: {...} }
-
-7) GET /api/health
-Response: { status, last_successful_run, failed_series_count, version }
-
-Notes
-- All responses are JSON.
-- CORS enabled for local UI.
-- Authentication optional (basic auth behind reverse proxy is fine).
+Export
+- Export current view as PNG
+- Download data as CSV

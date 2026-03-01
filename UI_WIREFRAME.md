@@ -1,64 +1,47 @@
--- DuckDB/SQLite schema for FRED Dashboard V2
--- Keep raw vs derived separate.
+FRED Dashboard V2 — Backend API Contract (FastAPI)
 
-CREATE TABLE IF NOT EXISTS series_catalog (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  domain TEXT NOT NULL,
-  tier TEXT NOT NULL,
-  intent TEXT,
-  frequency_hint TEXT,
-  history_years TEXT,
-  chart TEXT,
-  transforms TEXT,          -- JSON string
-  notes TEXT,
-  fallback_ids TEXT,        -- JSON string
-  vintage BOOLEAN,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+Base URL
+- /api
 
-CREATE TABLE IF NOT EXISTS series_metadata (
-  id TEXT,
-  fetched_at TIMESTAMP,
-  json TEXT,                -- raw /fred/series response json
-  PRIMARY KEY (id, fetched_at)
-);
+Endpoints
+1) GET /api/domains
+Response: [{ "domain": "Liquidity", "count": 4 }, ...]
 
-CREATE TABLE IF NOT EXISTS observations_raw (
-  id TEXT NOT NULL,                 -- series id
-  date DATE NOT NULL,
-  value DOUBLE,
-  realtime_start DATE,
-  realtime_end DATE,
-  is_latest BOOLEAN DEFAULT TRUE,   -- when vintage=true, mark latest
-  fetched_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (id, date, realtime_start, realtime_end)
-);
+2) GET /api/series
+Query params:
+- domain (optional)
+- tier (optional)
+Response: [{ id, name, domain, tier, intent, chart, transforms, notes }, ...]
 
-CREATE TABLE IF NOT EXISTS observations_derived (
-  id TEXT NOT NULL,                 -- derived id, e.g. PAYEMS__yoy
-  base_id TEXT NOT NULL,            -- PAYEMS
-  transform TEXT NOT NULL,          -- yoy/mom/diff/zscore/spread_to etc
-  date DATE NOT NULL,
-  value DOUBLE,
-  fetched_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (id, date)
-);
+3) GET /api/series/{id}
+Returns catalog entry + latest metadata snapshot
 
-CREATE TABLE IF NOT EXISTS ingestion_runs (
-  run_id TEXT PRIMARY KEY,
-  started_at TIMESTAMP,
-  finished_at TIMESTAMP,
-  status TEXT,                      -- success/partial/fail
-  config_hash TEXT,
-  summary_json TEXT                 -- counts, failures, durations
-);
+4) GET /api/series/{id}/data
+Query params:
+- start=YYYY-MM-DD (optional)
+- end=YYYY-MM-DD (optional)
+- transform=lin|yoy|mom|diff|zscore|...
+- vintage=latest|all (default latest)
+Response:
+{
+  "id": "PAYEMS",
+  "transform": "yoy",
+  "observations": [{ "date": "2024-01-01", "value": 1.23 }, ...]
+}
 
-CREATE TABLE IF NOT EXISTS ingestion_events (
-  run_id TEXT,
-  id TEXT,
-  level TEXT,                       -- info/warn/error
-  message TEXT,
-  detail_json TEXT,
-  ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+5) GET /api/composites
+Response: [{ id, name, intent, chart }, ...]
+
+6) GET /api/composites/{id}/data
+Response depends on chart:
+- line_zero: { date,value } series
+- multi_panel: { panels: { key: [{date,value}...] } }
+- heatmap_band: { score: [{date,value}], bands: {...} }
+
+7) GET /api/health
+Response: { status, last_successful_run, failed_series_count, version }
+
+Notes
+- All responses are JSON.
+- CORS enabled for local UI.
+- Authentication optional (basic auth behind reverse proxy is fine).

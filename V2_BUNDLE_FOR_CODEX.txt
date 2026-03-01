@@ -1,61 +1,31 @@
-Codex Task List — FRED Dashboard V2
+You are Codex. Build FRED Dashboard V2 as specified in SPEC_V2.md, using DATASETS_V2.yaml as the single source of truth for indicators and composites.
 
-Phase 0 — Repo Scaffold
-- Create repo structure:
-  /app (frontend)
-  /api (FastAPI)
-  /ingest (collector, transforms, scheduler)
-  /data (db, backups)
-  /config (DATASETS_V2.yaml, .env.example)
-  /tests
-  Makefile
+Hard requirements
+- Catalog-driven: No hardcoded series in code (except tests).
+- Robust ingestion: do not remove series because of temporary errors; implement retry + fallback_ids.
+- Store raw and derived separately. Provide FastAPI endpoints and a UI (Streamlit is acceptable as default).
+- Dark-mode minimal UI. Include domain tabs and composite pages.
+- Provide a Makefile with:
+  - make setup
+  - make ingest
+  - make run-api
+  - make run-ui
+  - make test
 
-Phase 1 — Catalog + Validation
-- Load DATASETS_V2.yaml
-- Validate:
-  - unique ids
-  - valid domain/tier
-  - transforms syntax
-  - composites inputs exist
-- Generate series_catalog table rows
+Implementation preferences
+- Python 3.11+
+- DuckDB preferred; SQLite acceptable with equivalent schema
+- Use httpx or requests; use tenacity for retries; use aiolimiter or custom token bucket for rate limiting.
+- Use pydantic for config models parsed from YAML.
+- Ensure transformations:
+  - yoy = (value / value_12m_ago - 1)*100 for monthly, or same-period-last-year for weekly/daily (use 365d nearest) with clear rule
+  - mom for monthly
+  - diff for levels
+  - zscore with rolling window (default 5 years)
 
-Phase 2 — FRED Client
-- Implement:
-  - request wrapper with rate limiting + retries
-  - disk cache
-  - endpoints:
-    - /fred/series
-    - /fred/series/observations
-  - robust error handling (don’t delete series)
-
-Phase 3 — Ingestion Pipeline
-- For each series:
-  - fetch metadata (once per day)
-  - fetch observations for required window
-  - store raw observations
-  - compute derived transforms into observations_derived
-- Run logging:
-  - ingestion_runs summary
-  - ingestion_events per series errors
-
-Phase 4 — API
-- Implement endpoints from API_SPEC.md
-- Add pagination for /series
-- Add efficient DB queries
-
-Phase 5 — UI
-Option A: Streamlit (fastest)
-- Domain tabs, chart rendering, series inspector, composites pages
-Option B: React (more work)
-- Charts + filtering + composites
-
-Phase 6 — Ops
-- CLI commands:
-  - ingest once
-  - schedule ingest (cron-compatible)
-  - backup rotate
-- Health dashboard endpoint + simple status page
-
-Phase 7 — Tests
-- Unit tests: transforms (yoy/mom/diff/zscore/spreads)
-- Integration: ingest 2–3 series end-to-end
+Files you must produce
+- Full repo with code
+- README with run instructions
+- config/.env.example
+- config/DATASETS_V2.yaml (use provided)
+- SQL schema file
