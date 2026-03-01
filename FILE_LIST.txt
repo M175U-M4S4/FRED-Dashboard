@@ -1,0 +1,14 @@
+（Codexへの貼り付け用メッセージ：そのまま使ってください）
+
+あなたはCodexです。添付の “FRED Dashboard V2” バンドルを唯一の正とし、SPEC_V2.md / API_SPEC.md / DB_SCHEMA.sql / DATASETS_V2.yaml / ACCEPTANCE_CRITERIA.md を満たす形で、リポジトリ一式を実装してください。
+
+必須条件：
+- 指標は config/DATASETS_V2.yaml だけで定義（コード側に series ID をハードコードしない。テスト除く）
+- 取得エラーが出てもシリーズを削除しない（retry + fallback_ids + ログで吸収）
+- raw と derived を分離してDBに保存（スキーマは DB_SCHEMA.sql 準拠）
+- FastAPI API を API_SPEC.md 通りに実装
+- UI は Streamlit をデフォルトで実装（ダーク基調、ドメインタブ自動生成、Series Inspector、composites 3ページ必須）
+- Makefile: setup / ingest / run-api / run-ui / test を提供
+- ACCEPTANCE_CRITERIA.md を満たすまで完成扱いにしない
+
+まず repo scaffold → catalog validation → FRED client → ingestion → transforms → API → UI → ops → tests の順に進め、各フェーズで動作確認を行ってください。

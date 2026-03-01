@@ -1,0 +1,53 @@
+FRED Dashboard V2 — Acceptance Criteria (Definition of Done)
+
+Build must be accepted ONLY if all items below pass.
+
+A. Repo / DX
+- `make setup` creates a virtualenv (or uv/poetry env) and installs dependencies.
+- `make ingest` runs a full ingestion using config/DATASETS_V2.yaml and writes to the DB.
+- `make run-api` starts FastAPI at http://127.0.0.1:8000
+- `make run-ui` starts UI (Streamlit default) at http://127.0.0.1:8501
+- `make test` runs unit tests successfully.
+
+B. Catalog-driven
+- No hardcoded FRED series IDs in code (except tests/fixtures).
+- Adding a series requires ONLY editing config/DATASETS_V2.yaml.
+
+C. Robust ingestion
+- Retries with exponential backoff for 429/5xx/timeouts.
+- Rate limiting configurable via env.
+- For each series:
+  - if primary ID fails, try fallback_ids in order
+  - do not delete/disable the series; log error and continue
+- Missing values (“.”) are handled as NULLs.
+- Ingestion produces a run summary and per-series events.
+
+D. Data correctness
+- Raw observations stored in observations_raw with correct date ordering.
+- Derived transforms stored in observations_derived:
+  - yoy: monthly uses 12 months back; daily/weekly uses closest observation ~365 days back (documented rule)
+  - mom: monthly uses previous month
+  - diff: first difference
+  - zscore: rolling window default 5y (configurable), ignores NULLs
+  - spread_to:<id>: base - other (requires both series)
+- For vintage=true series:
+  - store realtime_start/end in raw
+  - “latest” queries return latest vintage by default
+
+E. API contract
+- Endpoints in API_SPEC.md implemented.
+- /api/health returns last successful run timestamp and failed series count.
+
+F. UI
+- Dark-mode minimal UI.
+- Domain tabs auto-generated from catalog.
+- Series Inspector shows metadata + notes + last update + transform options.
+- Composite pages implemented:
+  - RISK_REGIME
+  - RECESSION_RISK
+  - INFLATION_DRIVERS
+
+G. Ops
+- Configurable DB path and backup directory.
+- Backup rotation script/command included (keep N daily snapshots).
+- Clear logs (structured JSON recommended).

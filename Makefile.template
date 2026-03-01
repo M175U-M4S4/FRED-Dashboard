@@ -1,0 +1,14 @@
+# Copy to config/.env and fill values
+FRED_API_KEY=YOUR_FRED_API_KEY_HERE
+
+# Runtime
+DB_PATH=./data/fred_v2.duckdb
+BACKUP_DIR=./data/backups
+LOG_LEVEL=INFO
+
+# Ingestion
+RATE_LIMIT_PER_MIN=60
+HTTP_TIMEOUT_SECONDS=30
+CACHE_DIR=./data/http_cache
+DEFAULT_HISTORY_YEARS=20
+Z_SCORE_ROLLING_DAYS=1825

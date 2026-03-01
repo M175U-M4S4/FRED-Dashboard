@@ -1,0 +1,41 @@
+Codex: Build “FRED Dashboard V2” from this bundle.
+
+Context
+- This project is a private macro dashboard that relies on FRED’s authoritative, stable series + composites.
+- The entire system MUST be catalog-driven. The file config/DATASETS_V2.yaml is the single source of truth.
+
+Your job
+1) Scaffold a full repo (Python 3.11+) with ingestion + DB + API + UI.
+2) Implement ingestion that is resilient (retry, rate limit, caching, fallback_ids).
+3) Store raw vs derived data separately.
+4) Implement FastAPI API contract.
+5) Implement Streamlit UI (default) with dark theme and composite pages.
+6) Provide Makefile targets: setup/ingest/run-api/run-ui/test.
+7) Add tests for transforms and a minimal integration test.
+
+Rules (non-negotiable)
+- Do NOT remove series from catalog because of temporary API errors.
+- Do NOT hardcode series IDs outside tests.
+- Always log ingestion outcomes; partial success is acceptable but must be visible.
+- Handle missing values “.” and empty strings as NULL.
+- Use config/.env for FRED API key; include config/.env.example.
+
+Files in this bundle
+- SPEC_V2.md: full product & technical spec
+- DATASETS_V2.yaml: indicator catalog + composites
+- DB_SCHEMA.sql: canonical schema
+- API_SPEC.md: API contract
+- UI_WIREFRAME.md: UI guidance
+- ACCEPTANCE_CRITERIA.md: definition of done
+- TASKS.md: phased implementation plan
+
+Implementation defaults (can adjust if justified)
+- DB: DuckDB (preferred). If SQLite, ensure equivalent schema & performance.
+- HTTP: httpx + tenacity retries
+- Rate limit: token bucket (configurable)
+- Cache: disk cache for backfills (24h default)
+- Transforms: implement in ingest/transforms.py with unit tests.
+
+Deliver output
+- Working repo with README and run commands for Windows/macOS/Linux.
+- Provide a short “Known Limitations” section if anything is incomplete.

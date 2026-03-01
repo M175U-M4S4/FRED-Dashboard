@@ -1,0 +1,61 @@
+Codex Task List — FRED Dashboard V2
+
+Phase 0 — Repo Scaffold
+- Create repo structure:
+  /app (frontend)
+  /api (FastAPI)
+  /ingest (collector, transforms, scheduler)
+  /data (db, backups)
+  /config (DATASETS_V2.yaml, .env.example)
+  /tests
+  Makefile
+
+Phase 1 — Catalog + Validation
+- Load DATASETS_V2.yaml
+- Validate:
+  - unique ids
+  - valid domain/tier
+  - transforms syntax
+  - composites inputs exist
+- Generate series_catalog table rows
+
+Phase 2 — FRED Client
+- Implement:
+  - request wrapper with rate limiting + retries
+  - disk cache
+  - endpoints:
+    - /fred/series
+    - /fred/series/observations
+  - robust error handling (don’t delete series)
+
+Phase 3 — Ingestion Pipeline
+- For each series:
+  - fetch metadata (once per day)
+  - fetch observations for required window
+  - store raw observations
+  - compute derived transforms into observations_derived
+- Run logging:
+  - ingestion_runs summary
+  - ingestion_events per series errors
+
+Phase 4 — API
+- Implement endpoints from API_SPEC.md
+- Add pagination for /series
+- Add efficient DB queries
+
+Phase 5 — UI
+Option A: Streamlit (fastest)
+- Domain tabs, chart rendering, series inspector, composites pages
+Option B: React (more work)
+- Charts + filtering + composites
+
+Phase 6 — Ops
+- CLI commands:
+  - ingest once
+  - schedule ingest (cron-compatible)
+  - backup rotate
+- Health dashboard endpoint + simple status page
+
+Phase 7 — Tests
+- Unit tests: transforms (yoy/mom/diff/zscore/spreads)
+- Integration: ingest 2–3 series end-to-end
