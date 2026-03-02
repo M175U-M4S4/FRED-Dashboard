@@ -1,0 +1,113 @@
+series:
+  - id: WALCL
+    name: Fed Total Assets
+    domain: Liquidity
+    tier: S
+    enabled: true
+    frequency_hint: weekly
+    history_years: all
+    transforms: [lin, yoy, zscore]
+    chart: line
+    notes: Fed balance sheet size
+    fallback_ids: []
+    vintage: false
+    intent: Core USD liquidity proxy
+
+  - id: WRESBAL
+    name: Reserve Balances
+    domain: Liquidity
+    tier: S
+    enabled: true
+    frequency_hint: weekly
+    history_years: 20
+    transforms: [lin, yoy, zscore]
+    chart: line
+    notes: Banking system reserves
+    fallback_ids: []
+    vintage: false
+    intent: Immediate liquidity conditions
+
+  - id: NFCI
+    name: Chicago Fed NFCI
+    domain: Stress
+    tier: S
+    enabled: true
+    frequency_hint: weekly
+    history_years: all
+    transforms: [lin, zscore]
+    chart: line_zero
+    notes: Higher values usually indicate tighter conditions
+    fallback_ids: [ANFCI]
+    vintage: false
+    intent: Aggregate financial stress
+
+  - id: SOFR
+    name: SOFR
+    domain: Rates
+    tier: A
+    enabled: true
+    frequency_hint: daily
+    history_years: 10
+    transforms: [lin, diff]
+    chart: line
+    notes: Secured overnight funding rate
+    fallback_ids: []
+    vintage: false
+    intent: Core funding market indicator
+
+  - id: DFII10
+    name: 10Y TIPS Real Yield
+    domain: Rates
+    tier: S
+    enabled: true
+    frequency_hint: daily
+    history_years: 20
+    transforms: [lin, diff, zscore]
+    chart: line
+    notes: Long-end real rates
+    fallback_ids: []
+    vintage: false
+    intent: Discount-rate pressure proxy
+
+  - id: BAMLH0A0HYM2
+    name: HY OAS
+    domain: Credit
+    tier: S
+    enabled: true
+    frequency_hint: daily
+    history_years: 20
+    transforms: [lin, zscore]
+    chart: line
+    notes: High-yield spread
+    fallback_ids: []
+    vintage: false
+    intent: Credit stress / risk appetite
+
+composites:
+  - id: liquidity_regime
+    name: Liquidity Regime Composite
+    description: Mean z-score of key liquidity proxies
+    domain: Composites
+    enabled: true
+    method: mean
+    components:
+      - series_id: WALCL
+        transform: zscore
+        weight: 1.0
+      - series_id: WRESBAL
+        transform: zscore
+        weight: 1.0
+
+  - id: stress_regime
+    name: Stress Regime Composite
+    description: Mean z-score of stress-sensitive indicators
+    domain: Composites
+    enabled: true
+    method: mean
+    components:
+      - series_id: NFCI
+        transform: zscore
+        weight: 1.0
+      - series_id: BAMLH0A0HYM2
+        transform: zscore
+        weight: 1.0
